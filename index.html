@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blood Link | بوابة إنقاذ الحياة</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <!-- Floating SOS Ticker -->
+  <div class="sos-bar">
+    <div class="sos-badge" data-i18n="sosLive">طوارئ حية • SOS</div>
+    <div class="ticker-wrap">
+      <div class="ticker" id="sosTicker"></div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="#home" class="brand">
+        <svg class="brand-drop" viewBox="0 0 36 44" fill="none">
+          <path d="M18 2C18 2 3 19.5 3 29.5C3 37.5 9.7 42 18 42C26.3 42 33 37.5 33 29.5C33 19.5 18 2 18 2Z" fill="url(#dropGrad)"/>
+          <path d="M18 22V32M13 27H23" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="dropGrad" x1="18" y1="2" x2="18" y2="42" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#FF3B5C"/>
+              <stop offset="1" stop-color="#8B0018"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div>
+          <span class="brand-title">Blood Link</span>
+          <span class="brand-sub" data-i18n="brandSub">بوابة إنقاذ الحياة</span>
+        </div>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="#home" class="active" data-i18n="navHome">الرئيسية</a>
+        <a href="#stock" data-i18n="navStock">مخزون الدم</a>
+        <a href="#donor-hub" data-i18n="navDonor">بوابة المتبرع</a>
+        <a href="#recipient-hub" data-i18n="navRecipient">بوابة المتلقي</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button id="motionToggle" class="icon-btn" title="إيقاف/تشغيل حركة الشريان" aria-label="Toggle 3D Motion">⏸</button>
+        <button id="langToggle" class="pill-btn" title="Switch Language">EN</button>
+        <button id="themeToggle" class="theme-btn" aria-label="Toggle Theme" title="تغيير المظهر">
+          <svg id="themeIcon" viewBox="0 0 32 36" width="22" height="22">
+            <path class="drop-body" d="M16 2C16 2 4 16 4 24C4 30.6 9.4 34 16 34C22.6 34 28 30.6 28 24C28 16 16 2 16 2Z" fill="#ff1e42"/>
+            <path class="drop-shine" d="M11 22C11 25.5 13 28 15.5 29" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+          </svg>
+        </button>
+        <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section with 3D Interactive Artery -->
+  <section id="home" class="hero">
+    <canvas id="arteryCanvas"></canvas>
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content container">
+      <div class="hero-text">
+        <h1 class="hero-title">
+          <span data-i18n="heroTitle1">قطرة منك..</span>
+          <span class="glow-text" data-i18n="heroTitle2">حياة لغيرك</span>
+        </h1>
+        <p class="hero-desc" data-i18n="heroDesc">
+          منصة ذكية تربط المتبرعين بالدم بالمرضى والمستشفيات في جميع محافظات مصر في ثوانٍ معدودة عبر تتبع حي وتطابق فوري للفصائل.
+        </p>
+
+        <div class="hero-cta">
+          <a href="#donor-hub" class="btn btn-primary" data-i18n="btnDonate">أريد التبرع الآن</a>
+          <a href="#recipient-hub" class="btn btn-outline" data-i18n="btnNeed">أحتاج متبرع (طلب عاجل)</a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-box">
+            <strong id="statDonors">1,420+</strong>
+            <span data-i18n="statDonorsLabel">متبرع نشط</span>
+          </div>
+          <div class="stat-box">
+            <strong>27</strong>
+            <span data-i18n="statGovLabel">محافظة مغطاة</span>
+          </div>
+          <div class="stat-box">
+            <strong>&lt; 4 <small data-i18n="minUnit">دقائق</small></strong>
+            <span data-i18n="statTimeLabel">متوسط الاستجابة</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Compatibility Quick Widget -->
+      <div class="compat-card glass-panel">
+        <h3 data-i18n="compatTitle">من ينقذ من؟ (تطابق الفصائل)</h3>
+        <p class="compat-hint" data-i18n="compatHint">اختر فصيلة دمك لمعرفة الفصائل التي يمكنك إنقاذها:</p>
+        <div class="blood-selector" id="bloodSelector">
+          <button class="type-pill active" data-type="O-">O-</button>
+          <button class="type-pill" data-type="O+">O+</button>
+          <button class="type-pill" data-type="A-">A-</button>
+          <button class="type-pill" data-type="A+">A+</button>
+          <button class="type-pill" data-type="B-">B-</button>
+          <button class="type-pill" data-type="B+">B+</button>
+          <button class="type-pill" data-type="AB-">AB-</button>
+          <button class="type-pill" data-type="AB+">AB+</button>
+        </div>
+        <div class="compat-result" id="compatResult">
+          <span class="result-label" data-i18n="canDonateTo">يمكنك التبرع لـ:</span>
+          <div class="target-badges" id="targetBadges"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Blood Stock Section -->
+  <section id="stock" class="section container">
+    <div class="section-header">
+      <h2 data-i18n="stockTitle">مخزون الدم الحي في البنوك</h2>
+      <p data-i18n="stockSub">مؤشر لحظي لنسب توفر الفصائل وتنبيهات العجز الحرج</p>
+    </div>
+
+    <div class="drops-grid" id="dropsGrid"></div>
+  </section>
+
+  <!-- Donor Hub Section -->
+  <section id="donor-hub" class="section container">
+    <div class="section-header">
+      <span class="section-tag" data-i18n="donorTag">بوابة المتبرع • DONOR PORTAL</span>
+      <h2 data-i18n="donorTitle">كن بطلاً وأصدر بطاقتك الرقمية</h2>
+      <p data-i18n="donorSub">تحقق من أهليتك للتبرع، اختر وجهتك (شخص أو مستشفى)، واحصل على بطاقة المتبرع ثلاثية الأبعاد</p>
+    </div>
+
+    <div class="hub-grid">
+      <!-- Form & Eligibility -->
+      <div class="glass-panel form-panel">
+        <label class="field-label" data-i18n="donateTargetLabel">اختر جهة التبرع:</label>
+        <div class="target-toggle" id="donationTargetToggle">
+          <button type="button" class="target-option active" data-target="person">
+            <span class="opt-icon">🧑‍🤝‍🧑</span>
+            <div>
+              <strong data-i18n="optPersonTitle">التبرع لشخص</strong>
+              <small data-i18n="optPersonDesc">تبرع مباشر لمريض محدد</small>
+            </div>
+          </button>
+          <button type="button" class="target-option" data-target="hospital">
+            <span class="opt-icon">🏥</span>
+            <div>
+              <strong data-i18n="optHospitalTitle">التبرع لمستشفى</strong>
+              <small data-i18n="optHospitalDesc">دعم مخزون بنك الدم</small>
+            </div>
+          </button>
+        </div>
+
+        <!-- Smart Eligibility & Next Donation Calculator -->
+        <div class="eligibility-box">
+          <h4 data-i18n="eligTitle">حاسبة الأهلية وموعد التبرع القادم</h4>
+          <div class="input-group compact-group">
+            <label data-i18n="lastDonationLabel">تاريخ آخر تبرع بالدم (اتركه فارغاً لو أول مرة):</label>
+            <input type="date" id="lastDonationDate" />
+          </div>
+          <label class="check-row">
+            <input type="checkbox" class="elig-check" id="chkAgeWeight" checked />
+            <span data-i18n="elig1">العمر بين 18 و 60 عاماً والوزن فوق 50 كجم</span>
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="elig-check" id="chkHealth" checked />
+            <span data-i18n="elig3">أتمتع بصحة جيدة ولا أتناول مضادات حيوية حالياً</span>
+          </label>
+          <div class="elig-status ready" id="eligStatus" data-i18n="eligReady">✓ مؤهل للتبرع اليوم!</div>
+        </div>
+
+        <form id="donorForm" class="styled-form">
+          <div class="input-row">
+            <div class="input-group">
+              <label data-i18n="labelName">الاسم الكامل</label>
+              <input type="text" id="donorName" placeholder="أحمد محمد" required />
+            </div>
+            <div class="input-group">
+              <label data-i18n="labelNationalId">الرقم القومي (14 رقم)</label>
+              <input type="text" id="donorNationalId" maxlength="14" minlength="14" inputmode="numeric" pattern="[0-9]{14}" placeholder="30109151801234" required />
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="input-group">
+              <label data-i18n="labelBlood">فصيلة الدم</label>
+              <select id="donorBlood">
+                <option value="O-">O-</option>
+                <option value="O+">O+</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label data-i18n="labelCity">المحافظة</label>
+              <select id="donorCity" class="city-select"></select>
+            </div>
+          </div>
+
+          <div class="input-group" id="targetDetailGroup">
+            <label id="targetDetailLabel" data-i18n="labelPersonCode">اسم المريض أو رقم الحالة (اختياري)</label>
+            <input type="text" id="targetDetailInput" placeholder="مثال: حالة طوارئ #104" />
+          </div>
+
+          <button type="submit" class="btn btn-primary full-width" data-i18n="btnGenerateCard">تحديث البطاقة وتفعيل الجاهزية</button>
+        </form>
+      </div>
+
+      <!-- 3D Tilt Digital Hero Card + Download -->
+      <div class="card-showcase">
+        <div class="hero-id-card" id="heroIdCard">
+          <div class="card-glow"></div>
+          <div class="card-top">
+            <span class="card-chip">BLOOD LINK HERO</span>
+            <span class="card-target-badge" id="cardTargetBadge">تبرع لشخص</span>
+          </div>
+          <div class="card-middle">
+            <div class="card-blood-circle" id="cardBloodDisplay">O-</div>
+            <div class="card-info">
+              <h3 id="cardNameDisplay">أحمد محمد</h3>
+              <p id="cardCityDisplay">البحيرة (دمنهور / النوبارية) • متاح الآن</p>
+              <span class="card-sub-detail" id="cardNidDisplay">ID: 3010915•••1234</span>
+              <span class="card-sub-detail" id="cardDetailDisplay" style="display:block;">جاهز للاستجابة الفورية</span>
+            </div>
+          </div>
+          <div class="card-bottom">
+            <div>
+              <small data-i18n="cardRank">الرتبة</small>
+              <strong data-i18n="cardRankVal">منقذ حياة ★★★★★</strong>
+            </div>
+            <div class="qr-mock" aria-label="QR Code">
+              <svg viewBox="0 0 40 40" width="44" height="44">
+                <rect width="40" height="40" rx="6" fill="#fff"/>
+                <path d="M6 6h10v10H6V6zm3 3v4h4V9H9zm15-3h10v10H24V6zm3 3v4h4V9h-4zM6 24h10v10H6V24zm3 3v4h4v-4H9zm15 0h4v4h-4v-4zm6 0h4v10h-10v-4h6v-6z" fill="#120306"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p class="tilt-hint" data-i18n="tiltHint">حرّك المؤشر أو المس البطاقة للمعاينة ثلاثية الأبعاد</p>
+        <button type="button" id="downloadCardBtn" class="btn btn-outline download-btn" data-i18n="btnDownloadCard">
+          ⬇ تحميل البطاقة كصورة (PNG)
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recipient Hub & Recipient Radar Section -->
+  <section id="recipient-hub" class="section container">
+    <div class="section-header">
+      <span class="section-tag" data-i18n="recTag">بوابة المتلقي • RECIPIENT PORTAL</span>
+      <h2 data-i18n="recTitle">رادار المتلقين وطلبات الاستغاثة</h2>
+      <p data-i18n="recSub">حدد موقع الحالات المحتاجة للتبرع في محافظتك أو أطلق نداء استغاثة عاجل</p>
+    </div>
+
+    <div class="hub-grid">
+      <!-- Interactive Recipient Radar -->
+      <div class="glass-panel radar-panel">
+        <div class="radar-header">
+          <h3 data-i18n="radarTitle">رادار المتلقي (الحالات المحتاجة)</h3>
+          <div class="radar-filters">
+            <select id="radarBloodFilter">
+              <option value="ALL" data-i18n="filterAllBlood">كل الفصائل</option>
+              <option value="O-">O-</option>
+              <option value="O+">O+</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+            </select>
+            <select id="radarCityFilter"></select>
+          </div>
+        </div>
+
+        <div class="radar-stage">
+          <div class="radar-circle c1"></div>
+          <div class="radar-circle c2"></div>
+          <div class="radar-circle c3"></div>
+          <div class="radar-sweep"></div>
+          <div class="radar-center" title="موقعك الحالي"></div>
+          <div id="radarBlipsContainer"></div>
+        </div>
+
+        <div class="recipient-list" id="recipientList"></div>
+      </div>
+
+      <!-- Broadcast Urgent Need Form -->
+      <div class="glass-panel form-panel">
+        <h3 data-i18n="sosFormTitle">إطلاق نداء استغاثة (طلب دم عاجل)</h3>
+        <p class="form-desc" data-i18n="sosFormDesc">سيظهر طلبك فوراً على رادار المتلقين وفي شريط الطوارئ الحي</p>
+
+        <form id="recipientForm" class="styled-form">
+          <div class="input-row">
+            <div class="input-group">
+              <label data-i18n="recNameLabel">اسم المريض / الحالة</label>
+              <input type="text" id="recPatientName" placeholder="مثال: سارة محمود" required />
+            </div>
+            <div class="input-group">
+              <label data-i18n="recNationalIdLabel">الرقم القومي للمريض (14 رقم)</label>
+              <input type="text" id="recNationalId" maxlength="14" minlength="14" inputmode="numeric" pattern="[0-9]{14}" placeholder="29805121805678" required />
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="input-group">
+              <label data-i18n="recBloodLabel">الفصيلة المطلوبة</label>
+              <select id="recBloodType">
+                <option value="O-">O-</option>
+                <option value="O+">O+</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label data-i18n="recCityLabel">المحافظة</label>
+              <select id="recCity" class="city-select"></select>
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="input-group">
+              <label data-i18n="recPhoneLabel">رقم الهاتف للتواصل</label>
+              <input type="tel" id="recPhone" placeholder="01012345678" required />
+            </div>
+            <div class="input-group">
+              <label data-i18n="recUrgencyLabel">درجة الخطورة</label>
+              <select id="recUrgency">
+                <option value="critical" data-i18n="urgCritical">حرج جداً (فوري)</option>
+                <option value="moderate" data-i18n="urgModerate">متوسط (خلال 24 ساعة)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="input-group">
+              <label data-i18n="recHospitalLabel">اسم المستشفى / الموقع</label>
+              <input type="text" id="recHospital" placeholder="مستشفى دمنهور التعليمي" required />
+            </div>
+            <div class="input-group">
+              <label data-i18n="recUnitsLabel">عدد الأكياس</label>
+              <input type="number" id="recUnits" min="1" max="10" value="2" required />
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary full-width" data-i18n="btnBroadcastSOS">نشر نداء الاستغاثة الآن 🚨</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <strong>Blood Link</strong> — <span data-i18n="brandSub">بوابة إنقاذ الحياة</span>
+      </div>
+      <div class="footer-credit" data-i18n="footerCredit">
+        تم تطويره عن طريق فريق VOID
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
